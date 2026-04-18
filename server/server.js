@@ -1,30 +1,21 @@
 const express = require('express');
-const dotenv = require('dotenv');
+const mongoose = require('mongoose');
 const cors = require('cors');
-const connectDB = require('./config/db');
-
-// Load environment variables
-dotenv.config();
-
-// Connect to Database
-connectDB();
+require('dotenv').config();
 
 const app = express();
 
-// Middleware so Express understands JSON data
-app.use(express.json());
+// Middleware
 app.use(cors());
+app.use(express.json());
 
-// Add this line to connect your routes!
+// Routes (Connecting the Controller to the Server)
 app.use('/api/crops', require('./routes/cropRoutes'));
 
-// A simple test route
-app.get('/', (req, res) => {
-  res.send('Krishi-Connect API is running!');
-});
+// Database Connection
+mongoose.connect(process.env.MONGO_URI)
+  .then(() => console.log('MongoDB Connected successfully to KrishiConnect cluster!'))
+  .catch((err) => console.log('MongoDB connection failed:', err.message));
 
 const PORT = process.env.PORT || 5000;
-
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

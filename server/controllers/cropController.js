@@ -1,28 +1,33 @@
-// Import the Model we just created
 const CropListing = require('../models/CropListing');
 
-// The logic to add a new crop
 const addCrop = async (req, res) => {
   try {
-    // 1. Get the data that React sent in the request body
-    const { name, price, description, farmerName } = req.body;
+    const { name, category, price, description, imageUrl, farmerName, harvestDate, expiryDate, totalStock, minOrder } = req.body;
 
-    // 2. Create a new crop using our Model
+    // Backend Validation Logic
+    if (Number(minOrder) > Number(totalStock)) {
+      return res.status(400).json({ error: "Minimum order cannot be greater than Total Stock!" });
+    }
+
     const newCrop = new CropListing({
-      name: name,
-      price: price,
-      description: description,
-      farmerName: farmerName
+      name, 
+      category, 
+      price, 
+      description, 
+      imageUrl, 
+      farmerName,
+      harvestDate,
+      expiryDate,
+      totalStock,
+      minOrder
     });
 
-    // 3. Save it to MongoDB
     await newCrop.save();
-
-    // 4. Send a success message back to React
     res.status(201).json({ message: "Crop added successfully!", data: newCrop });
 
   } catch (error) {
-    // If anything goes wrong, send an error back
+    // This logs the exact reason if MongoDB rejects the data
+    console.log("🔥 MONGOOSE ERROR:", error.message); 
     res.status(500).json({ error: "Failed to add crop" });
   }
 };

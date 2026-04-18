@@ -1,12 +1,16 @@
 const mongoose = require('mongoose');
 
-// 1. Define the shape of the data
 const cropSchema = new mongoose.Schema({
   name: { type: String, required: true },
+  category: { type: String, enum: ['Vegetable', 'Fruit', 'Grain', 'Spice'], required: true },
   price: { type: Number, required: true },
-  description: { type: String, required: true },
-  farmerName: { type: String, required: true }
-});
+  description: { type: String, required: true, maxlength: 100 },
+  imageUrl: { type: String, required: true },
+  farmerName: { type: String, required: true },
+  harvestDate: { type: Date, required: true },
+  expiryDate: { type: Date, required: true },
+  totalStock: { type: Number, required: true },
+  minOrder: { type: Number, required: true }
+}, { versionKey: false });
 
-// 2. Turn the schema into a Model and export it
 module.exports = mongoose.model('CropListing', cropSchema);
