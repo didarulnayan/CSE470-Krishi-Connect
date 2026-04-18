@@ -15,6 +15,9 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
+// Add this line to connect your routes!
+app.use('/api/crops', require('./routes/cropRoutes'));
+
 // A simple test route
 app.get('/', (req, res) => {
   res.send('Krishi-Connect API is running!');
