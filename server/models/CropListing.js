@@ -15,7 +15,8 @@ const cropListingSchema = new mongoose.Schema({
   division: { type: String, default: 'Dhaka Division' },
   batchId: { type: String, default: () => new mongoose.Types.ObjectId().toString() }
 }, {
-  timestamps: true
+  timestamps: true,
+  versionKey: false
 });
 
 module.exports = mongoose.model('CropListing', cropListingSchema);
