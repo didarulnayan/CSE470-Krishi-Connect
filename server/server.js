@@ -11,6 +11,9 @@ app.use(express.json());
 
 // Routes (Connecting the Controller to the Server)
 app.use('/api/crops', require('./routes/cropRoutes'));
+// Member 3 integration
+app.use('/api/produce', require('./routes/produceRoutes'));
+app.use('/api/orders', require('./routes/orderRoutes'));
 
 // Database Connection
 mongoose.connect(process.env.MONGO_URI)
