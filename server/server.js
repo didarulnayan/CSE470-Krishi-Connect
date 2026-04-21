@@ -20,6 +20,9 @@ app.get('/', (req, res) => {
   res.send('Krishi-Connect API is running!');
 });
 
+// Import and use routes
+app.use('/api/crops', require('./routes/cropRoutes'));
+
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
