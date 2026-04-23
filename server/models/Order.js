@@ -35,9 +35,9 @@ const orderSchema = new mongoose.Schema({
   versionKey: false
 });
 
-orderSchema.pre('save', async function (next) {
+orderSchema.pre('save', async function () {
   if (!this.isNew || this.orderId) {
-    return next();
+    return;
   }
 
   const lastOrder = await this.constructor
@@ -47,7 +47,6 @@ orderSchema.pre('save', async function (next) {
     .lean();
 
   this.orderId = lastOrder ? lastOrder.orderId + 1 : 1;
-  next();
 });
 
 orderSchema.methods.confirmOrder = function () {

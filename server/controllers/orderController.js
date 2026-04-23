@@ -28,11 +28,15 @@ const createOrder = async (req, res) => {
       });
     }
 
-    if (numericQuantity > Number(produce.stockQty)) {
+    if (numericQuantity > Number(produce.totalStock)) {
       return res.status(400).json({ error: 'Requested quantity exceeds available stock.' });
     }
 
-    const finalPrice = numericQuantity * Number(produce.basePrice);
+    const finalPrice = numericQuantity * Number(produce.price);
+
+    if (!Number.isFinite(finalPrice) || finalPrice < 0) {
+      return res.status(400).json({ error: 'Invalid produce price configured.' });
+    }
 
     const orderItem = await OrderItem.create({
       produce: produce._id,
@@ -59,9 +63,9 @@ const createOrder = async (req, res) => {
       data: savedOrder
     });
   } catch (error) {
+    console.error('Create order error:', error);
     res.status(500).json({ error: 'Failed to create order.' });
   }
 };
 
 module.exports = { createOrder };
-
