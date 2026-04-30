@@ -11,6 +11,7 @@ app.use(express.json());
 
 // Routes (Connecting the Controller to the Server)
 app.use('/api/crops', require('./routes/cropRoutes'));
+app.use('/api/auth', require('./routes/authRoutes'));
 
 // Database Connection
 mongoose.connect(process.env.MONGO_URI)
