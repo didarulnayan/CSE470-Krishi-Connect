@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import LoginPage from './LoginPage';
 import AddCropForm from './AddCropForm';
 import OrderPage from './OrderPage';
+import FarmerOrdersDashboard from './FarmerOrdersDashboard';
 
 function App() {
   const [user, setUser] = useState(null);
@@ -29,7 +30,11 @@ function App() {
       {!user ? (
         <LoginPage onLoginSuccess={setUser} />
       ) : user.role === 'farmer' ? (
-        <AddCropForm />
+        <div>
+          <AddCropForm user={user} />
+          <div style={{ height: '24px' }} />
+          <FarmerOrdersDashboard farmerName={user.name} />
+        </div>
       ) : (
         <div style={{ padding: '32px 20px 48px' }}>
           <OrderPage />

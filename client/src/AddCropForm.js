@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
-const AddCropForm = () => {
+const AddCropForm = ({ user }) => {
   const [name, setName] = useState('');
   const [category, setCategory] = useState('Vegetable');
   const [price, setPrice] = useState('');
@@ -11,6 +11,12 @@ const AddCropForm = () => {
   const [expiryDate, setExpiryDate] = useState('');
   const [totalStock, setTotalStock] = useState('');
   const [minOrder, setMinOrder] = useState('');
+
+  useEffect(() => {
+    if (user?.name) {
+      setFarmerName(user.name);
+    }
+  }, [user?.name]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();

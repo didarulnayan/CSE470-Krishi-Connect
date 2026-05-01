@@ -68,4 +68,79 @@ const createOrder = async (req, res) => {
   }
 };
 
-module.exports = { createOrder };
+const getIncomingOrders = async (req, res) => {
+  try {
+    const { farmerName } = req.query;
+
+    if (!farmerName || typeof farmerName !== 'string') {
+      return res.status(400).json({ error: 'farmerName query param is required.' });
+    }
+
+    const orders = await Order.find()
+      .sort({ _id: -1 })
+      .populate({
+        path: 'orderItems',
+        populate: {
+          path: 'produce'
+        }
+      })
+      .lean();
+
+    const normalizedFarmerName = farmerName.trim().toLowerCase();
+
+    const incoming = orders.filter((order) =>
+      Array.isArray(order.orderItems) &&
+      order.orderItems.some((item) => {
+        const produce = item?.produce;
+        if (!produce) return false;
+        const produceFarmer = String(produce.farmerName || '').trim().toLowerCase();
+        return produceFarmer === normalizedFarmerName;
+      })
+    );
+
+    res.status(200).json(incoming);
+  } catch (error) {
+    console.error('Get incoming orders error:', error);
+    res.status(500).json({ error: 'Failed to fetch incoming orders.' });
+  }
+};
+
+const updateOrderStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+
+    if (!['accepted', 'rejected'].includes(status)) {
+      return res.status(400).json({ error: 'Status must be accepted or rejected.' });
+    }
+
+    const order = await Order.findById(id);
+    if (!order) {
+      return res.status(404).json({ error: 'Order not found.' });
+    }
+
+    if (order.status !== 'pending') {
+      return res.status(409).json({ error: 'Only pending orders can be updated.' });
+    }
+
+    order.status = status;
+    await order.save();
+
+    const savedOrder = await Order.findById(order._id).populate({
+      path: 'orderItems',
+      populate: {
+        path: 'produce'
+      }
+    });
+
+    res.status(200).json({
+      message: 'Order status updated successfully.',
+      data: savedOrder
+    });
+  } catch (error) {
+    console.error('Update order status error:', error);
+    res.status(500).json({ error: 'Failed to update order status.' });
+  }
+};
+
+module.exports = { createOrder, getIncomingOrders, updateOrderStatus };
