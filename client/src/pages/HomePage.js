@@ -9,11 +9,6 @@ const HomePage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [districtUrl, setDistrictUrl] = useState('All');
-  const [divisionUrl, setDivisionUrl] = useState('All');
-
-  const divisions = ['All', 'Dhaka', 'Chittagong', 'Rajshahi', 'Khulna', 'Barisal', 'Sylhet', 'Rangpur', 'Mymensingh'];
-  const districts = ['All', 'Dhaka', 'Munshiganj', 'Gazipur', 'Rajshahi', 'Bogra', 'Pabna', 'Dinajpur', 'Rangpur'];
 
   useEffect(() => {
     const fetchCrops = async () => {
@@ -21,8 +16,6 @@ const HomePage = () => {
       try {
         let qs = `?`;
         if (searchTerm) qs += `search=${searchTerm}&`;
-        if (districtUrl !== 'All') qs += `district=${districtUrl}&`;
-        if (divisionUrl !== 'All') qs += `division=${divisionUrl}&`;
 
         const { data } = await axios.get(`http://localhost:5000/api/crops${qs}`);
         setCrops(data);
@@ -31,10 +24,7 @@ const HomePage = () => {
         console.error("Backend fetch failed, falling back to dummyData", err);
         // Fallback to dummy data
         const fallbackData = dummyData.filter(crop => {
-            const matchSearch = crop.name.toLowerCase().includes(searchTerm.toLowerCase());
-            const matchDistrict = districtUrl === 'All' || crop.district === districtUrl;
-            const matchDivision = divisionUrl === 'All' || crop.division === divisionUrl;
-            return matchSearch && matchDistrict && matchDivision;
+            return crop.name.toLowerCase().includes(searchTerm.toLowerCase());
         });
         setCrops(fallbackData);
         setError("Could not connect to live database. Displaying offline data.");
@@ -49,7 +39,7 @@ const HomePage = () => {
     }, 500);
 
     return () => clearTimeout(delayDebounce);
-  }, [searchTerm, districtUrl, divisionUrl]);
+  }, [searchTerm]);
 
   return (
     <div className="home-container">
@@ -72,12 +62,6 @@ const HomePage = () => {
           </div>
           <div className="filters">
             <Filter size={18} />
-            <select value={divisionUrl} onChange={(e) => setDivisionUrl(e.target.value)} className="filter-select">
-              {divisions.map(div => <option key={div} value={div}>{div} Division</option>)}
-            </select>
-            <select value={districtUrl} onChange={(e) => setDistrictUrl(e.target.value)} className="filter-select">
-              {districts.map(dist => <option key={dist} value={dist}>{dist} District</option>)}
-            </select>
           </div>
         </div>
       </header>
