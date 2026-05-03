@@ -8,10 +8,28 @@ const PurchaseRequestForm = ({ crop }) => {
   // Auto-calculated total price
   const totalPrice = quantity * crop.price;
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // In a real app, this would POST to /api/orders
-    setSubmitted(true);
+    
+    try {
+      const response = await fetch('http://localhost:5000/api/orders/add', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          produceId: crop._id || crop.produceId,
+          quantity: Number(quantity)
+        })
+      });
+      
+      const data = await response.json();
+      if (response.ok) {
+        setSubmitted(true);
+      } else {
+        alert(data.error || 'Failed to place order.');
+      }
+    } catch (err) {
+      alert('Network error. Could not connect to the server.');
+    }
   };
 
   if (submitted) {
@@ -72,7 +90,7 @@ const PurchaseRequestForm = ({ crop }) => {
         </div>
 
         <button type="submit" className="btn-primary w-full shadow-hover">
-          <Truck className="btn-icon" /> Confirm Order
+          <Truck className="btn-icon" /> Order Now
         </button>
       </form>
     </div>
