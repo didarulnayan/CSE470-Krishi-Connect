@@ -1,20 +1,33 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
-const AddCropForm = () => {
+// ==========================================
+// Requirement 1 - Khalid
+// ==========================================
+// This is a React functional component. We use 'useState' to store what the user types in the form,
+// and 'useEffect' to run code automatically when the component loads or when data changes.
+
+const AddCropForm = ({ user, onGoBack }) => {
   const [name, setName] = useState('');
   const [category, setCategory] = useState('Vegetable');
   const [price, setPrice] = useState('');
   const [description, setDescription] = useState('');
   const [imageUrl, setImageUrl] = useState('');
-  const [farmerName, setFarmerName] = useState('');
+  const [farmerName, setFarmerName] = useState(user?.name || '');
+  const [farmerContact, setFarmerContact] = useState(user?.contact || ''); // New Contact State
   const [harvestDate, setHarvestDate] = useState('');
   const [expiryDate, setExpiryDate] = useState('');
   const [totalStock, setTotalStock] = useState('');
   const [minOrder, setMinOrder] = useState('');
 
+  // Update farmerName and farmerContact if user prop changes (e.g. after login)
+  useEffect(() => {
+    if (user?.name) setFarmerName(user.name);
+    if (user?.contact) setFarmerContact(user.contact);
+  }, [user]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const cropData = { name, category, price, description, imageUrl, farmerName, harvestDate, expiryDate, totalStock, minOrder };
+    const cropData = { name, category, price, description, imageUrl, farmerName, farmerContact, harvestDate, expiryDate, totalStock, minOrder };
 
     try {
       const response = await fetch('http://localhost:5000/api/crops/add', {
@@ -26,22 +39,34 @@ const AddCropForm = () => {
       const data = await response.json();
       if (response.ok) {
         alert("Crop Added Successfully!");
-        // Reset all fields upon success
-        setName(''); setCategory('Vegetable'); setPrice(''); setDescription(''); setImageUrl(''); setFarmerName(''); setHarvestDate(''); setExpiryDate(''); setTotalStock(''); setMinOrder('');
+        // Reset all fields upon success (except farmerName)
+        setName(''); setCategory('Vegetable'); setPrice(''); setDescription(''); setImageUrl(''); setHarvestDate(''); setExpiryDate(''); setTotalStock(''); setMinOrder('');
+        if (onGoBack) onGoBack(); // Go back to dashboard after success
       } else {
         alert(`Error: ${data.error}`);
       }
     } catch (error) {
       console.error(error);
+      alert("Network Error: Could not connect to the backend server.");
     }
   };
 
   return (
-    <div style={{ display: 'flex', justifyContent: 'center', gap: '50px', padding: '20px', fontFamily: 'Arial' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '20px', fontFamily: 'Arial' }}>
       
-      {/* FORM SECTION */}
-      <div style={{ width: '400px', border: '1px solid #ddd', padding: '20px', borderRadius: '8px', backgroundColor: '#fff' }}>
-        <h2>Add a New Crop</h2>
+      {onGoBack && (
+        <div style={{ width: '750px', display: 'flex', justifyContent: 'flex-start', marginBottom: '10px' }}>
+          <button onClick={onGoBack} style={{ padding: '8px 12px', cursor: 'pointer', border: '1px solid #ddd', borderRadius: '4px', backgroundColor: '#f9f9f9' }}>
+            ← Back to Dashboard
+          </button>
+        </div>
+      )}
+
+      <div style={{ display: 'flex', justifyContent: 'center', gap: '50px' }}>
+        
+        {/* FORM SECTION */}
+        <div style={{ width: '400px', border: '1px solid #ddd', padding: '20px', borderRadius: '8px', backgroundColor: '#fff' }}>
+          <h2>Add a New Crop</h2>
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
           
           <label>Crop Name:</label>
@@ -145,11 +170,19 @@ const AddCropForm = () => {
             {description || "No description provided."}
           </p>
 
-          <p style={{ fontSize: '12px', fontWeight: 'bold', textAlign: 'right', marginTop: '10px' }}>👨‍🌾 By: {farmerName || "Farmer"}</p>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '10px' }}>
+            <p style={{ fontSize: '12px', fontWeight: 'bold', margin: 0 }}>👨‍🌾 By: {farmerName || "Farmer"}</p>
+            <p style={{ fontSize: '12px', color: '#007bff', margin: 0 }}>📞 {farmerContact || "Contact Info"}</p>
+          </div>
         </div>
       </div>
     </div>
+  </div>
   );
 };
+
+// ==========================================
+// End of Requirement 1 - Khalid
+// ==========================================
 
 export default AddCropForm;

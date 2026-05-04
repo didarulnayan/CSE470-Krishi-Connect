@@ -8,7 +8,8 @@ const userSchema = new mongoose.Schema({
     type: String, 
     enum: ['farmer', 'buyer', 'admin'], 
     required: true 
-  }
+  },
+  contact: { type: String } // Added contact field
 }, { versionKey: false });
 
 module.exports = mongoose.model('User', userSchema);

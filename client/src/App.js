@@ -1,10 +1,20 @@
 import React, { useState } from 'react';
 import LoginPage from './LoginPage';
 import AddCropForm from './AddCropForm'; // Bring back your awesome form!
+import FarmerDashboard from './FarmerDashboard'; // New Dashboard
+
+// ==========================================
+// Main Application Component (Router)
+// ==========================================
+// This component acts as the "Traffic Cop" for our frontend. 
+// It decides which screen to show based on who is logged in.
 
 function App() {
   // App.js now tracks who is logged in for the whole website
   const [user, setUser] = useState(null);
+  
+  // State to manage what the farmer sees
+  const [farmerView, setFarmerView] = useState('dashboard');
 
   return (
     <div>
@@ -19,7 +29,10 @@ function App() {
               Logged in as: <b>{user.name}</b> ({user.role})
             </span>
             <button 
-              onClick={() => setUser(null)} 
+              onClick={() => {
+                setUser(null);
+                setFarmerView('dashboard'); // Reset view on logout
+              }} 
               style={{ padding: '6px 12px', backgroundColor: '#dc3545', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
             >
               Log Out
@@ -33,8 +46,12 @@ function App() {
         // Route 1: Not logged in? Show Login Page
         <LoginPage onLoginSuccess={setUser} />
       ) : user.role === 'farmer' ? (
-        // Route 2: Logged in as Farmer? Show Add Crop Form
-        <AddCropForm />
+        // Route 2: Logged in as Farmer? Show Dashboard or Add Crop Form
+        farmerView === 'dashboard' ? (
+          <FarmerDashboard user={user} onNavigate={setFarmerView} />
+        ) : (
+          <AddCropForm user={user} onGoBack={() => setFarmerView('dashboard')} />
+        )
       ) : (
         // Route 3: Logged in as Buyer/Admin? Show a temporary placeholder
         <div style={{ textAlign: 'center', marginTop: '50px', fontFamily: 'Arial' }}>

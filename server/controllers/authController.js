@@ -16,7 +16,7 @@ const loginUser = async (req, res) => {
 
     res.status(200).json({ 
       message: "Login successful!", 
-      user: { id: user._id, name: user.name, role: user.role } 
+      user: { id: user._id, name: user.name, role: user.role, contact: user.contact } 
     });
 
   } catch (error) {
@@ -28,7 +28,7 @@ const loginUser = async (req, res) => {
 // --- NEW: REGISTRATION LOGIC ---
 const registerUser = async (req, res) => {
   try {
-    const { name, email, password, role } = req.body;
+    const { name, email, password, role, contact } = req.body;
 
     // 1. Check if the email is already taken
     const existingUser = await User.findOne({ email });
@@ -37,13 +37,13 @@ const registerUser = async (req, res) => {
     }
 
     // 2. Create the new user
-    const newUser = new User({ name, email, password, role });
+    const newUser = new User({ name, email, password, role, contact });
     await newUser.save();
 
     // 3. Send back success and instantly log them in
     res.status(201).json({
       message: "Registration successful!",
-      user: { id: newUser._id, name: newUser.name, role: newUser.role }
+      user: { id: newUser._id, name: newUser.name, role: newUser.role, contact: newUser.contact }
     });
 
   } catch (error) {

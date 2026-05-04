@@ -1,5 +1,11 @@
 import React, { useState } from 'react';
 
+// ==========================================
+// Requirement 1 - Khalid (Contact Info Added)
+// ==========================================
+// This component handles both User Login and Registration.
+// It switches between the two forms based on the 'isRegistering' state.
+
 const LoginPage = ({ onLoginSuccess }) => {
   // New state to toggle between Login and Register modes
   const [isRegistering, setIsRegistering] = useState(false);
@@ -10,6 +16,7 @@ const LoginPage = ({ onLoginSuccess }) => {
   // Extra fields needed for Registration
   const [name, setName] = useState('');
   const [role, setRole] = useState('buyer');
+  const [contact, setContact] = useState(''); // New contact state
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -19,7 +26,7 @@ const LoginPage = ({ onLoginSuccess }) => {
     
     // Build the data payload
     const payload = isRegistering 
-      ? { name, email, password, role } 
+      ? { name, email, password, role, contact } 
       : { email, password };
 
     try {
@@ -94,6 +101,18 @@ const LoginPage = ({ onLoginSuccess }) => {
             </div>
           )}
 
+          {/* SHOW CONTACT NUMBER IF REGISTERING AS FARMER */}
+          {isRegistering && role === 'farmer' && (
+            <div>
+              <label>Contact Number:</label>
+              <input 
+                type="text" value={contact} onChange={(e) => setContact(e.target.value)} required 
+                style={{ width: '100%', padding: '8px', marginTop: '5px' }}
+                placeholder="e.g. +88017..."
+              />
+            </div>
+          )}
+
           <button type="submit" style={{ padding: '10px', backgroundColor: isRegistering ? '#28a745' : '#007bff', color: '#fff', border: 'none', borderRadius: '5px', cursor: 'pointer', fontWeight: 'bold' }}>
             {isRegistering ? "Sign Up" : "Sign In"}
           </button>
@@ -114,5 +133,9 @@ const LoginPage = ({ onLoginSuccess }) => {
     </div>
   );
 };
+
+// ==========================================
+// End of Requirement 1 - Khalid (Contact Info Modifications)
+// ==========================================
 
 export default LoginPage;
