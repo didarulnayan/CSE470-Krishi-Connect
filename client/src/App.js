@@ -1,23 +1,16 @@
-import logo from './logo.svg';
-import './App.css';
+import React from 'react';
+import AddCropForm from './AddCropForm';
+import OrderPage from './OrderPage';
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div>
+      <h1 style={{ textAlign: 'center' }}>Krishi-Connect</h1>
+      <AddCropForm />
+      {/* Member 3 integration */}
+      <div style={{ padding: '32px 20px 48px' }}>
+        <OrderPage />
+      </div>
     </div>
   );
 }
