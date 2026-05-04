@@ -90,4 +90,78 @@ const createOrder = async (req, res) => {
   }
 };
 
-module.exports = { createOrder };
+const getFarmerOrders = async (req, res) => {
+  try {
+    const { farmerName } = req.params;
+
+    // Find order items for this farmer
+    const orderItems = await OrderItem.find({ farmerName });
+    const orderItemIds = orderItems.map(item => item._id);
+
+    // Find orders that contain these items
+    const orders = await Order.find({ orderItems: { $in: orderItemIds } })
+      .populate({
+        path: 'orderItems',
+        match: { farmerName }, // Only populate items for this farmer
+        populate: {
+          path: 'produce'
+        }
+      })
+      .sort({ orderDate: -1 });
+
+    // Filter out orders where the matched orderItems array is empty
+    const farmerOrders = orders.filter(order => order.orderItems.length > 0);
+
+    res.status(200).json({ data: farmerOrders });
+  } catch (error) {
+    console.error('Get farmer orders error:', error);
+    res.status(500).json({ error: 'Failed to fetch farmer orders.' });
+  }
+};
+
+const updateOrderStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+
+    if (!['accepted', 'rejected'].includes(status)) {
+      return res.status(400).json({ error: 'Invalid status update.' });
+    }
+
+    const order = await Order.findById(id);
+
+    if (!order) {
+      return res.status(404).json({ error: 'Order not found.' });
+    }
+
+    order.status = status;
+    await order.save();
+
+    res.status(200).json({ message: 'Order status updated successfully.', data: order });
+  } catch (error) {
+    console.error('Update order status error:', error);
+    res.status(500).json({ error: 'Failed to update order status.' });
+  }
+};
+
+const hideOrderFromDashboard = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const order = await Order.findById(id);
+
+    if (!order) {
+      return res.status(404).json({ error: 'Order not found.' });
+    }
+
+    order.hiddenByFarmer = true;
+    await order.save();
+
+    res.status(200).json({ message: 'Order hidden from dashboard successfully.', data: order });
+  } catch (error) {
+    console.error('Hide order error:', error);
+    res.status(500).json({ error: 'Failed to hide order.' });
+  }
+};
+
+module.exports = { createOrder, getFarmerOrders, updateOrderStatus, hideOrderFromDashboard };

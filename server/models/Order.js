@@ -30,6 +30,10 @@ const orderSchema = new mongoose.Schema({
       validator: (items) => items.length > 0,
       message: 'An order must contain at least one order item.'
     }
+  },
+  hiddenByFarmer: {
+    type: Boolean,
+    default: false
   }
 }, {
   versionKey: false

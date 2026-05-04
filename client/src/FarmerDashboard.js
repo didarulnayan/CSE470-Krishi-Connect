@@ -34,12 +34,20 @@ const FarmerDashboard = ({ user, onNavigate }) => {
     <div style={{ padding: '20px', fontFamily: 'Arial' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
         <h2>My Listed Crops</h2>
-        <button 
-          onClick={() => onNavigate('add')}
-          style={{ padding: '10px 15px', backgroundColor: '#28a745', color: '#fff', border: 'none', borderRadius: '5px', cursor: 'pointer', fontWeight: 'bold' }}
-        >
-          + Add a new Crop
-        </button>
+        <div style={{ display: 'flex', gap: '10px' }}>
+          <button 
+            onClick={() => onNavigate('orders')}
+            style={{ padding: '10px 15px', backgroundColor: '#17a2b8', color: '#fff', border: 'none', borderRadius: '5px', cursor: 'pointer', fontWeight: 'bold' }}
+          >
+            📋 Check Orders
+          </button>
+          <button 
+            onClick={() => onNavigate('add')}
+            style={{ padding: '10px 15px', backgroundColor: '#28a745', color: '#fff', border: 'none', borderRadius: '5px', cursor: 'pointer', fontWeight: 'bold' }}
+          >
+            + Add a new Crop
+          </button>
+        </div>
       </div>
 
       {loading ? (

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import LoginPage from './LoginPage';
 import AddCropForm from './AddCropForm'; // Bring back your awesome form!
 import FarmerDashboard from './FarmerDashboard'; // New Dashboard
+import FarmerOrders from './FarmerOrders'; // Member 2 Orders Dashboard
 import OrderPage from './OrderPage'; // Member 3 integration
 
 // ==========================================
@@ -47,9 +48,11 @@ function App() {
         // Route 1: Not logged in? Show Login Page
         <LoginPage onLoginSuccess={setUser} />
       ) : user.role === 'farmer' ? (
-        // Route 2: Logged in as Farmer? Show Dashboard or Add Crop Form
+        // Route 2: Logged in as Farmer? Show Dashboard, Orders, or Add Crop Form
         farmerView === 'dashboard' ? (
           <FarmerDashboard user={user} onNavigate={setFarmerView} />
+        ) : farmerView === 'orders' ? (
+          <FarmerOrders user={user} onGoBack={() => setFarmerView('dashboard')} />
         ) : (
           <AddCropForm user={user} onGoBack={() => setFarmerView('dashboard')} />
         )
