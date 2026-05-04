@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import LoginPage from './LoginPage';
 import AddCropForm from './AddCropForm'; // Bring back your awesome form!
 import FarmerDashboard from './FarmerDashboard'; // New Dashboard
+import OrderPage from './OrderPage'; // Member 3 integration
 
 // ==========================================
 // Main Application Component (Router)
@@ -53,10 +54,10 @@ function App() {
           <AddCropForm user={user} onGoBack={() => setFarmerView('dashboard')} />
         )
       ) : (
-        // Route 3: Logged in as Buyer/Admin? Show a temporary placeholder
-        <div style={{ textAlign: 'center', marginTop: '50px', fontFamily: 'Arial' }}>
-          <h2>Welcome to the {user.role.toUpperCase()} Dashboard!</h2>
-          <p>This marketplace view will be built in the next sprint.</p>
+        // Route 3: Logged in as Buyer/Admin? Show Member 3's Order Page!
+        // Member 3 integration 
+        <div style={{ padding: '32px 20px 48px' }}>
+          <OrderPage />
         </div>
       )}
       

@@ -18,6 +18,9 @@ app.use(express.json());
 // These routes intercept URL requests and send them to the correct Controller logic.
 app.use('/api/crops', require('./routes/cropRoutes'));
 app.use('/api/auth', require('./routes/authRoutes'));
+// Member 3 integration
+app.use('/api/produce', require('./routes/produceRoutes'));
+app.use('/api/orders', require('./routes/orderRoutes'));
 
 // Database Connection
 // We moved the MongoDB connection logic to config/db.js to keep server.js clean!
