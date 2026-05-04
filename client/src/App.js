@@ -13,7 +13,7 @@ import OrderPage from './OrderPage'; // Member 3 integration
 function App() {
   // App.js now tracks who is logged in for the whole website
   const [user, setUser] = useState(null);
-  
+
   // State to manage what the farmer sees
   const [farmerView, setFarmerView] = useState('dashboard');
 
@@ -22,18 +22,18 @@ function App() {
       {/* Dynamic Header based on who is logged in */}
       <div style={{ backgroundColor: '#f4f4f4', padding: '10px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '2px solid #ddd' }}>
         <h1 style={{ margin: 0, fontFamily: 'Arial', color: '#28a745' }}>Krishi-Connect</h1>
-        
+
         {/* If user is logged in, show their name and a Logout button */}
         {user && (
           <div>
             <span style={{ marginRight: '15px', fontFamily: 'Arial' }}>
               Logged in as: <b>{user.name}</b> ({user.role})
             </span>
-            <button 
+            <button
               onClick={() => {
                 setUser(null);
                 setFarmerView('dashboard'); // Reset view on logout
-              }} 
+              }}
               style={{ padding: '6px 12px', backgroundColor: '#dc3545', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
             >
               Log Out
@@ -55,12 +55,12 @@ function App() {
         )
       ) : (
         // Route 3: Logged in as Buyer/Admin? Show Member 3's Order Page!
-        // Member 3 integration
+        // Member 3 integration 
         <div style={{ padding: '32px 20px 48px' }}>
           <OrderPage />
         </div>
       )}
-      
+
     </div>
   );
 }
