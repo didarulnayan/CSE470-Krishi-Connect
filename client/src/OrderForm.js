@@ -1,11 +1,14 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 
 function OrderForm({ produceOptions = [] }) {
   const [selectedProduceId, setSelectedProduceId] = useState('');
   const [quantity, setQuantity] = useState('');
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
+  const [orderSummary, setOrderSummary] = useState(null);
   const [submitting, setSubmitting] = useState(false);
+  const [ordering, setOrdering] = useState(false);
+  const quantityInputRef = useRef(null);
 
   useEffect(() => {
     if (!selectedProduceId && produceOptions.length > 0) {
@@ -17,6 +20,14 @@ function OrderForm({ produceOptions = [] }) {
     () => produceOptions.find((item) => item._id === selectedProduceId),
     [produceOptions, selectedProduceId]
   );
+
+  useEffect(() => {
+    setOrdering(false);
+    setQuantity('');
+    setMessage('');
+    setError('');
+    setOrderSummary(null);
+  }, [selectedProduceId]);
 
   const totalPrice = useMemo(() => {
     if (!selectedProduce || !quantity) {
@@ -30,6 +41,7 @@ function OrderForm({ produceOptions = [] }) {
     event.preventDefault();
     setMessage('');
     setError('');
+    setOrderSummary(null);
     setSubmitting(true);
 
     try {
@@ -50,13 +62,28 @@ function OrderForm({ produceOptions = [] }) {
         setError(data.error || 'Failed to place order.');
       } else {
         setMessage(data.message || 'Order confirmed.');
+        setOrderSummary(data.summary || null);
         setQuantity('');
+        setOrdering(false);
       }
     } catch (submitError) {
       setError('Could not connect to the server.');
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const handleOrderNow = () => {
+    if (!selectedProduce) {
+      return;
+    }
+
+    setOrdering(true);
+    setQuantity((currentQuantity) => currentQuantity || String(selectedProduce.minOrder || 1));
+
+    window.setTimeout(() => {
+      quantityInputRef.current?.focus();
+    }, 0);
   };
 
   return (
@@ -83,38 +110,69 @@ function OrderForm({ produceOptions = [] }) {
         </select>
 
         {selectedProduce && (
-          <button
-            type="button"
-            style={{ padding: '10px', backgroundColor: '#f0f7ea', border: '1px solid #b7d6a5', borderRadius: '8px', cursor: 'default' }}
-          >
-            Order Now: {selectedProduce.name}
-          </button>
+          <div style={{ padding: '16px', border: '1px solid #d7e3d2', borderRadius: '10px', backgroundColor: '#f8fbf5', display: 'grid', gap: '10px' }}>
+            <div>
+              <strong>{selectedProduce.name}</strong>
+              <p style={{ margin: '6px 0 0', color: '#4b5d47' }}>
+                Farmer: {selectedProduce.farmerName || 'N/A'} | Price: BDT {selectedProduce.price}/Kg
+              </p>
+            </div>
+
+            <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', color: '#4b5d47', fontSize: '14px' }}>
+              <span>Min Order: {selectedProduce.minOrder || 1} Kg</span>
+              <span>Stock: {selectedProduce.totalStock} Kg</span>
+            </div>
+
+            <button
+              type="button"
+              onClick={handleOrderNow}
+              style={{ padding: '10px', backgroundColor: '#f0f7ea', border: '1px solid #b7d6a5', borderRadius: '8px', cursor: 'pointer' }}
+            >
+              Order Now
+            </button>
+          </div>
         )}
 
-        <label htmlFor="quantity-input">Quantity (Kg)</label>
-        <input
-          id="quantity-input"
-          type="number"
-          min={selectedProduce?.minOrder || 1}
-          max={selectedProduce?.totalStock || undefined}
-          value={quantity}
-          onChange={(event) => setQuantity(event.target.value)}
-          required
-        />
+        {ordering && (
+          <>
+            <label htmlFor="quantity-input">Quantity (Kg)</label>
+            <input
+              id="quantity-input"
+              ref={quantityInputRef}
+              type="number"
+              min={selectedProduce?.minOrder || 1}
+              max={selectedProduce?.totalStock || undefined}
+              value={quantity}
+              onChange={(event) => setQuantity(event.target.value)}
+              required
+            />
 
-        <div style={{ padding: '12px', backgroundColor: '#f7f7f7', borderRadius: '8px' }}>
-          <strong>Total Price:</strong> BDT {totalPrice}
-        </div>
+            <div style={{ padding: '12px', backgroundColor: '#f7f7f7', borderRadius: '8px' }}>
+              <strong>Total Price:</strong> BDT {totalPrice}
+            </div>
 
-        <button
-          type="submit"
-          disabled={submitting || produceOptions.length === 0}
-          style={{ padding: '12px', backgroundColor: '#2f7d32', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer' }}
-        >
-          {submitting ? 'Submitting...' : 'Confirm Order'}
-        </button>
+            <button
+              type="submit"
+              disabled={submitting || produceOptions.length === 0}
+              style={{ padding: '12px', backgroundColor: '#2f7d32', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer' }}
+            >
+              {submitting ? 'Submitting...' : 'Confirm Order'}
+            </button>
+          </>
+        )}
 
         {message && <p style={{ color: '#2f7d32', margin: 0 }}>{message}</p>}
+        {orderSummary && (
+          <div style={{ padding: '14px', border: '1px solid #cfe3c2', borderRadius: '10px', backgroundColor: '#f5fbef', display: 'grid', gap: '8px' }}>
+            <strong>Order #{orderSummary.orderId}</strong>
+            <span>Status: {orderSummary.status}</span>
+            <span>Produce: {orderSummary.item.produceName}</span>
+            <span>Farmer: {orderSummary.item.farmerName || 'N/A'}</span>
+            <span>Unit Price: BDT {orderSummary.item.unitPrice}/Kg</span>
+            <span>Quantity: {orderSummary.item.quantity} Kg</span>
+            <span>Total: BDT {orderSummary.totalAmount}</span>
+          </div>
+        )}
         {error && <p style={{ color: '#c62828', margin: 0 }}>{error}</p>}
       </form>
     </div>

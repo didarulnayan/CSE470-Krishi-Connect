@@ -40,6 +40,10 @@ const createOrder = async (req, res) => {
 
     const orderItem = await OrderItem.create({
       produce: produce._id,
+      produceName: produce.name,
+      farmerName: produce.farmerName || '',
+      imageUrl: produce.imageUrl || '',
+      unitPrice: Number(produce.price),
       quantity: numericQuantity,
       finalPrice
     });
@@ -58,9 +62,27 @@ const createOrder = async (req, res) => {
       }
     });
 
+    const primaryItem = savedOrder?.orderItems?.[0];
+
     res.status(201).json({
       message: 'Order request submitted successfully.',
-      data: savedOrder
+      data: savedOrder,
+      summary: primaryItem ? {
+        orderId: savedOrder.orderId,
+        status: savedOrder.status,
+        orderDate: savedOrder.orderDate,
+        totalAmount: savedOrder.totalAmount,
+        item: {
+          id: primaryItem._id,
+          produceId: primaryItem.produce?._id || primaryItem.produce,
+          produceName: primaryItem.produceName,
+          farmerName: primaryItem.farmerName,
+          imageUrl: primaryItem.imageUrl,
+          unitPrice: primaryItem.unitPrice,
+          quantity: primaryItem.quantity,
+          finalPrice: primaryItem.finalPrice
+        }
+      } : null
     });
   } catch (error) {
     console.error('Create order error:', error);
