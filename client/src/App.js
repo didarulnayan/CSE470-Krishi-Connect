@@ -55,6 +55,7 @@ function App() {
         )
       ) : (
         // Route 3: Logged in as Buyer/Admin? Show Member 3's Order Page!
+        // Member 3 integration
         <div style={{ padding: '32px 20px 48px' }}>
           <OrderPage />
         </div>
