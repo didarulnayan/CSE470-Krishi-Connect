@@ -5,6 +5,7 @@ const AdminDashboard = ({ user }) => {
   const [users, setUsers] = useState([]);
   const [crops, setCrops] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [deletingCropId, setDeletingCropId] = useState(null);
 
   useEffect(() => {
     fetchData();
@@ -26,6 +27,31 @@ const AdminDashboard = ({ user }) => {
       console.error('Error fetching data:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDeleteCrop = async (cropId, cropName) => {
+    const confirmed = window.confirm(`Delete "${cropName}" from active crop listings?`);
+    if (!confirmed) return;
+
+    setDeletingCropId(cropId);
+
+    try {
+      const res = await fetch(`http://localhost:5000/api/admin/crops/${cropId}`, {
+        method: 'DELETE'
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Failed to delete crop listing');
+      }
+
+      setCrops(prevCrops => prevCrops.filter(crop => crop._id !== cropId));
+    } catch (error) {
+      console.error('Error deleting crop:', error);
+      alert(error.message);
+    } finally {
+      setDeletingCropId(null);
     }
   };
 
@@ -140,7 +166,24 @@ const AdminDashboard = ({ user }) => {
       objectFit: 'cover',
       borderRadius: '8px',
       marginBottom: '15px'
-    }
+    },
+    actionRow: {
+      marginTop: '18px',
+      paddingTop: '15px',
+      borderTop: '1px solid #e9ecef',
+      display: 'flex',
+      justifyContent: 'flex-end'
+    },
+    deleteButton: (disabled) => ({
+      backgroundColor: disabled ? '#f5c2c7' : '#dc3545',
+      color: 'white',
+      border: 'none',
+      borderRadius: '8px',
+      padding: '10px 14px',
+      fontSize: '0.95rem',
+      fontWeight: '700',
+      cursor: disabled ? 'not-allowed' : 'pointer'
+    })
   };
 
   return (
@@ -218,6 +261,15 @@ const AdminDashboard = ({ user }) => {
               <div style={styles.detailRow}>
                 <span style={styles.detailLabel}>Farmer</span>
                 <span style={styles.detailValue}>{c.farmerName}</span>
+              </div>
+              <div style={styles.actionRow}>
+                <button
+                  style={styles.deleteButton(deletingCropId === c._id)}
+                  onClick={() => handleDeleteCrop(c._id, c.name)}
+                  disabled={deletingCropId === c._id}
+                >
+                  {deletingCropId === c._id ? 'Deleting...' : 'Delete'}
+                </button>
               </div>
             </div>
           ))}
