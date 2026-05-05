@@ -21,6 +21,8 @@ app.use('/api/auth', require('./routes/authRoutes'));
 // Member 3 integration
 app.use('/api/produce', require('./routes/produceRoutes'));
 app.use('/api/orders', require('./routes/orderRoutes'));
+// Admin Dashboard integration
+app.use('/api/admin', require('./routes/adminRoutes'));
 
 // Database Connection
 // We moved the MongoDB connection logic to config/db.js to keep server.js clean!

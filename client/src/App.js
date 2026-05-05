@@ -4,6 +4,7 @@ import AddCropForm from './AddCropForm'; // Bring back your awesome form!
 import FarmerDashboard from './FarmerDashboard'; // New Dashboard
 import FarmerOrders from './FarmerOrders'; // Member 2 Orders Dashboard
 import OrderPage from './OrderPage'; // Member 3 integration
+import AdminDashboard from './AdminDashboard'; // Admin Dashboard integration
 
 // ==========================================
 // Main Application Component (Router)
@@ -56,8 +57,11 @@ function App() {
         ) : (
           <AddCropForm user={user} onGoBack={() => setFarmerView('dashboard')} />
         )
+      ) : user.role === 'admin' ? (
+        // Route 3: Logged in as Admin? Show AdminDashboard
+        <AdminDashboard user={user} />
       ) : (
-        // Route 3: Logged in as Buyer/Admin? Show Member 3's Order Page!
+        // Route 4: Logged in as Buyer? Show Member 3's Order Page!
         // Member 3 integration 
         <div style={{ padding: '32px 20px 48px' }}>
           <OrderPage />

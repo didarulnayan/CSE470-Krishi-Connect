@@ -5,6 +5,14 @@ const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
 
+    // --- NEW: Admin Login Check ---
+    if (email === process.env.admin_mail && password === process.env.admin_pass) {
+      return res.status(200).json({ 
+        message: "Admin login successful!", 
+        user: { id: 'admin-id', name: 'System Admin', role: 'admin' } 
+      });
+    }
+
     const user = await User.findOne({ email });
     if (!user) {
       return res.status(404).json({ error: "User not found!" });
