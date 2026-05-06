@@ -21,6 +21,14 @@ function App() {
     setSelectedCrop(null);
   };
 
+  const handleLogoClick = () => {
+    if (user) {
+      if (user.role === 'farmer') setFarmerView('dashboard');
+      if (user.role === 'buyer') setBuyerView('home');
+      setSelectedCrop(null);
+    }
+  };
+
   const roleBadgeColor = {
     farmer: { bg: '#dcfce7', color: '#15803d' },
     buyer:  { bg: '#dbeafe', color: '#1d4ed8' },
@@ -48,7 +56,11 @@ function App() {
         justifyContent: 'space-between',
       }}>
         {/* Logo */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <div 
+          onClick={handleLogoClick}
+          style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}
+          title="Return to Dashboard"
+        >
           <span style={{ fontSize: '26px' }}>🌾</span>
           <span style={{ fontSize: '20px', fontWeight: '800', color: '#15803d', letterSpacing: '-0.5px' }}>
             Krishi-Connect
