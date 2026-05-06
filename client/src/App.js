@@ -1,100 +1,141 @@
 import React, { useState } from 'react';
 import LoginPage from './LoginPage';
-import AddCropForm from './AddCropForm'; // Bring back your awesome form!
-import FarmerDashboard from './FarmerDashboard'; // New Dashboard
-import FarmerOrders from './FarmerOrders'; // Member 2 Orders Dashboard
-import OrderPage from './OrderPage'; // Member 3 integration
-import AdminDashboard from './AdminDashboard'; // Admin Dashboard integration
-import BuyerHomepage from './BuyerHomepage'; // Requirement 2 - Buyer Browse
-import DetailedView from './DetailedView';   // Requirement 2 - Crop Detail
-
-// ==========================================
-// Main Application Component (Router)
-// ==========================================
-// This component acts as the "Traffic Cop" for our frontend. 
-// It decides which screen to show based on who is logged in.
+import AddCropForm from './AddCropForm';
+import FarmerDashboard from './FarmerDashboard';
+import FarmerOrders from './FarmerOrders';
+import OrderPage from './OrderPage';
+import AdminDashboard from './AdminDashboard';
+import BuyerHomepage from './BuyerHomepage';
+import DetailedView from './DetailedView';
 
 function App() {
-  // App.js now tracks who is logged in for the whole website
   const [user, setUser] = useState(null);
-
-  // State to manage what the farmer sees
   const [farmerView, setFarmerView] = useState('dashboard');
-
-  // State to manage what the buyer sees (Requirement 2)
-  const [buyerView, setBuyerView] = useState('home'); // 'home' | 'detail' | 'order'
+  const [buyerView, setBuyerView] = useState('home');
   const [selectedCrop, setSelectedCrop] = useState(null);
 
-  return (
-    <div>
-      {/* Dynamic Header based on who is logged in */}
-      <div style={{ backgroundColor: '#f4f4f4', padding: '10px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '2px solid #ddd' }}>
-        <h1 style={{ margin: 0, fontFamily: 'Arial', color: '#28a745' }}>Krishi-Connect</h1>
+  const handleLogout = () => {
+    setUser(null);
+    setFarmerView('dashboard');
+    setBuyerView('home');
+    setSelectedCrop(null);
+  };
 
-        {/* If user is logged in, show their name and a Logout button */}
+  const roleBadgeColor = {
+    farmer: { bg: '#dcfce7', color: '#15803d' },
+    buyer:  { bg: '#dbeafe', color: '#1d4ed8' },
+    admin:  { bg: '#fce7f3', color: '#9d174d' },
+  };
+
+  const badge = user ? roleBadgeColor[user.role] || { bg: '#f1f5f9', color: '#475569' } : null;
+
+  return (
+    <div style={{ minHeight: '100vh', backgroundColor: '#f8faf8' }}>
+
+      {/* ── NAV HEADER ── */}
+      <header style={{
+        position: 'sticky',
+        top: 0,
+        zIndex: 100,
+        background: 'rgba(255,255,255,0.95)',
+        backdropFilter: 'blur(10px)',
+        borderBottom: '1px solid #e2e8f0',
+        boxShadow: '0 1px 8px rgba(0,0,0,0.06)',
+        padding: '0 24px',
+        height: '60px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+      }}>
+        {/* Logo */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <span style={{ fontSize: '26px' }}>🌾</span>
+          <span style={{ fontSize: '20px', fontWeight: '800', color: '#15803d', letterSpacing: '-0.5px' }}>
+            Krishi-Connect
+          </span>
+        </div>
+
+        {/* User info + logout */}
         {user && (
-          <div>
-            <span style={{ marginRight: '15px', fontFamily: 'Arial' }}>
-              Logged in as: <b>{user.name}</b> ({user.role})
-            </span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div style={{ textAlign: 'right' }}>
+              <div style={{ fontSize: '14px', fontWeight: '600', color: '#0f172a' }}>{user.name}</div>
+              <div style={{
+                display: 'inline-block',
+                fontSize: '10px',
+                fontWeight: '700',
+                textTransform: 'uppercase',
+                letterSpacing: '0.6px',
+                padding: '2px 8px',
+                borderRadius: '999px',
+                backgroundColor: badge.bg,
+                color: badge.color,
+              }}>
+                {user.role}
+              </div>
+            </div>
             <button
-              onClick={() => {
-                setUser(null);
-                setFarmerView('dashboard'); // Reset view on logout
-                setBuyerView('home');       // Reset buyer view on logout
-                setSelectedCrop(null);
+              onClick={handleLogout}
+              style={{
+                padding: '7px 16px',
+                backgroundColor: 'transparent',
+                color: '#64748b',
+                border: '1.5px solid #e2e8f0',
+                borderRadius: '8px',
+                fontSize: '13px',
+                fontWeight: '600',
+                cursor: 'pointer',
+                transition: 'all 0.15s ease',
               }}
-              style={{ padding: '6px 12px', backgroundColor: '#dc3545', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = '#ef4444'; e.currentTarget.style.color = '#ef4444'; }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = '#e2e8f0'; e.currentTarget.style.color = '#64748b'; }}
             >
               Log Out
             </button>
           </div>
         )}
-      </div>
+      </header>
 
-      {/* ROUTING LOGIC (The Traffic Cop) */}
-      {!user ? (
-        // Route 1: Not logged in? Show Login Page
-        <LoginPage onLoginSuccess={setUser} />
-      ) : user.role === 'farmer' ? (
-        // Route 2: Logged in as Farmer? Show Dashboard, Orders, or Add Crop Form
-        farmerView === 'dashboard' ? (
-          <FarmerDashboard user={user} onNavigate={setFarmerView} />
-        ) : farmerView === 'orders' ? (
-          <FarmerOrders user={user} onGoBack={() => setFarmerView('dashboard')} />
+      {/* ── ROUTING ── */}
+      <main>
+        {!user ? (
+          <LoginPage onLoginSuccess={setUser} />
+        ) : user.role === 'farmer' ? (
+          farmerView === 'dashboard' ? (
+            <FarmerDashboard user={user} onNavigate={setFarmerView} />
+          ) : farmerView === 'orders' ? (
+            <FarmerOrders user={user} onGoBack={() => setFarmerView('dashboard')} />
+          ) : (
+            <AddCropForm user={user} onGoBack={() => setFarmerView('dashboard')} />
+          )
+        ) : user.role === 'admin' ? (
+          <AdminDashboard user={user} />
         ) : (
-          <AddCropForm user={user} onGoBack={() => setFarmerView('dashboard')} />
-        )
-      ) : user.role === 'admin' ? (
-        // Route 3: Logged in as Admin? Show AdminDashboard
-        <AdminDashboard user={user} />
-      ) : (
-        // Route 4: Logged in as Buyer? Show Requirement 2 Buyer flow
-        buyerView === 'home' ? (
-          <BuyerHomepage
-            user={user}
-            onSelectCrop={(crop) => { setSelectedCrop(crop); setBuyerView('detail'); }}
-          />
-        ) : buyerView === 'detail' ? (
-          <DetailedView
-            crop={selectedCrop}
-            onGoBack={() => setBuyerView('home')}
-            onOrderNow={() => setBuyerView('order')}
-          />
-        ) : (
-          // Buyer clicked Order Now → Member 3's OrderPage
-          <div style={{ padding: '32px 20px 48px' }}>
-            <button
-              onClick={() => setBuyerView('home')}
-              style={{ marginBottom: '16px', padding: '8px 16px', backgroundColor: '#f0f5ec', border: '1px solid #c8dcc0', borderRadius: '8px', color: '#2f7d32', fontSize: '14px', fontWeight: '600', cursor: 'pointer' }}
-            >
-              ← Back to Crops
-            </button>
-            <OrderPage />
-          </div>
-        )
-      )}
-
+          buyerView === 'home' ? (
+            <BuyerHomepage
+              user={user}
+              onSelectCrop={(crop) => { setSelectedCrop(crop); setBuyerView('detail'); }}
+            />
+          ) : buyerView === 'detail' ? (
+            <DetailedView
+              crop={selectedCrop}
+              onGoBack={() => setBuyerView('home')}
+              onOrderNow={() => setBuyerView('order')}
+            />
+          ) : (
+            <div style={{ padding: '28px 24px', maxWidth: '600px', margin: '0 auto' }}>
+              <button
+                className="kc-btn-secondary"
+                onClick={() => setBuyerView('home')}
+                style={{ marginBottom: '20px' }}
+              >
+                ← Back to Crops
+              </button>
+              <OrderPage />
+            </div>
+          )
+        )}
+      </main>
     </div>
   );
 }

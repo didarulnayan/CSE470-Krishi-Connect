@@ -4,151 +4,176 @@ const FarmerOrders = ({ user, onGoBack }) => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showHistory, setShowHistory] = useState(false);
+  const [updatingId, setUpdatingId] = useState(null);
 
   useEffect(() => {
     const fetchOrders = async () => {
       try {
         const response = await fetch(`http://localhost:5000/api/orders/farmer/${user.name}`);
         const data = await response.json();
-        if (response.ok) {
-          setOrders(data.data);
-        } else {
-          console.error("Failed to fetch orders");
-        }
+        if (response.ok) setOrders(data.data);
       } catch (error) {
-        console.error("Network Error:", error);
+        console.error('Network Error:', error);
       } finally {
         setLoading(false);
       }
     };
-
     fetchOrders();
   }, [user.name]);
 
   const handleUpdateStatus = async (orderId, newStatus) => {
+    setUpdatingId(orderId);
     try {
       const response = await fetch(`http://localhost:5000/api/orders/${orderId}/status`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: newStatus }),
       });
-      
       if (response.ok) {
-        setOrders(prevOrders => 
-          prevOrders.map(order => 
-            order._id === orderId ? { ...order, status: newStatus } : order
-          )
-        );
-      } else {
-        console.error("Failed to update status");
+        setOrders(prev => prev.map(o => o._id === orderId ? { ...o, status: newStatus } : o));
       }
     } catch (error) {
-      console.error("Network Error:", error);
+      console.error('Network Error:', error);
+    } finally {
+      setUpdatingId(null);
     }
   };
 
   const handleRemoveOrder = async (orderId) => {
     try {
-      const response = await fetch(`http://localhost:5000/api/orders/${orderId}/hide`, {
-        method: 'PUT',
-      });
+      const response = await fetch(`http://localhost:5000/api/orders/${orderId}/hide`, { method: 'PUT' });
       if (response.ok) {
-        setOrders(prevOrders => 
-          prevOrders.map(order => 
-            order._id === orderId ? { ...order, hiddenByFarmer: true } : order
-          )
-        );
-      } else {
-        console.error("Failed to hide order");
+        setOrders(prev => prev.map(o => o._id === orderId ? { ...o, hiddenByFarmer: true } : o));
       }
     } catch (error) {
-      console.error("Network Error:", error);
+      console.error('Network Error:', error);
     }
   };
 
-  const displayedOrders = showHistory 
-    ? orders 
-    : orders.filter(order => !order.hiddenByFarmer);
+  const displayedOrders = showHistory ? orders : orders.filter(o => !o.hiddenByFarmer);
+
+  const statusConfig = {
+    pending:  { bg: '#fef9c3', color: '#713f12', border: '#fde68a', label: 'PENDING' },
+    accepted: { bg: '#dcfce7', color: '#15803d', border: '#86efac', label: 'ACCEPTED' },
+    rejected: { bg: '#fee2e2', color: '#dc2626', border: '#fca5a5', label: 'REJECTED' },
+  };
 
   return (
-    <div style={{ padding: '20px', fontFamily: 'Arial' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-        <div>
-          <button 
-            onClick={onGoBack}
-            style={{ padding: '8px 12px', backgroundColor: '#6c757d', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', marginRight: '15px' }}
-          >
-            ← Back to Dashboard
-          </button>
-          <span style={{ fontSize: '24px', fontWeight: 'bold' }}>
-            {showHistory ? 'Order History' : 'Incoming Orders'}
-          </span>
+    <div style={{ padding: '28px 24px', maxWidth: '900px', margin: '0 auto' }}>
+
+      {/* ── Header ── */}
+      <div style={{
+        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+        marginBottom: '24px', flexWrap: 'wrap', gap: '12px',
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+          <button className="kc-btn-secondary" onClick={onGoBack}>← Dashboard</button>
+          <div>
+            <h2 style={{ margin: 0, fontSize: '20px', fontWeight: '800', color: '#0f172a' }}>
+              {showHistory ? '📜 Order History' : '📬 Incoming Orders'}
+            </h2>
+            <p style={{ margin: 0, fontSize: '13px', color: '#64748b' }}>
+              {loading ? 'Loading...' : `${displayedOrders.length} order${displayedOrders.length !== 1 ? 's' : ''}`}
+            </p>
+          </div>
         </div>
-        <button 
+        <button
+          className={showHistory ? 'kc-btn-secondary' : 'kc-btn-primary'}
           onClick={() => setShowHistory(!showHistory)}
-          style={{ padding: '10px 15px', backgroundColor: showHistory ? '#17a2b8' : '#007bff', color: '#fff', border: 'none', borderRadius: '5px', cursor: 'pointer', fontWeight: 'bold' }}
         >
-          {showHistory ? 'View Active Dashboard' : 'Order History'}
+          {showHistory ? '📬 Active Orders' : '📜 View History'}
         </button>
       </div>
 
+      {/* ── Content ── */}
       {loading ? (
-        <p>Loading incoming orders...</p>
+        <div style={{ textAlign: 'center', padding: '60px', color: '#94a3b8' }}>⏳ Loading orders...</div>
       ) : displayedOrders.length === 0 ? (
-        <p>No orders found.</p>
+        <div style={{
+          textAlign: 'center', padding: '60px 20px',
+          background: '#fff', borderRadius: '16px', border: '1px solid #e2e8f0',
+        }}>
+          <div style={{ fontSize: '48px', marginBottom: '12px' }}>📭</div>
+          <h3 style={{ color: '#0f172a', margin: '0 0 6px' }}>No orders yet</h3>
+          <p style={{ color: '#64748b', margin: 0 }}>New orders from buyers will appear here.</p>
+        </div>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           {displayedOrders.map((order) => {
-            // Aggregate info from items
             const firstItem = order.orderItems[0];
-            const produceName = firstItem ? firstItem.produceName : 'Unknown Produce';
+            const produceName = firstItem ? firstItem.produceName : 'Unknown';
             const totalQty = order.orderItems.reduce((sum, item) => sum + item.quantity, 0);
+            const st = statusConfig[order.status] || statusConfig.pending;
+            const isUpdating = updatingId === order._id;
 
             return (
-              <div key={order._id} style={{ border: '1px solid #ccc', padding: '15px', borderRadius: '10px', backgroundColor: '#fff', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
-                <div>
-                  <h3 style={{ margin: '0 0 10px 0' }}>Order #{order.orderId}</h3>
-                  <p style={{ margin: '5px 0', fontSize: '14px' }}><b>Item:</b> {produceName}</p>
-                  <p style={{ margin: '5px 0', fontSize: '14px' }}><b>Quantity:</b> {totalQty} Kg</p>
-                  <p style={{ margin: '5px 0', fontSize: '14px' }}><b>Total Amount:</b> ৳ {order.totalAmount}</p>
-                  <p style={{ margin: '5px 0', fontSize: '14px' }}><b>Date:</b> {new Date(order.orderDate).toLocaleString()}</p>
-                  <p style={{ margin: '10px 0 0 0', fontSize: '14px' }}>
-                    <b>Status: </b> 
-                    <span style={{ 
-                      padding: '4px 8px', 
-                      borderRadius: '4px', 
-                      color: '#fff',
-                      backgroundColor: order.status === 'pending' ? '#ffc107' : 
-                                      order.status === 'accepted' ? '#28a745' : '#dc3545'
-                    }}>
-                      {order.status.toUpperCase()}
+              <div key={order._id} style={{
+                background: '#fff',
+                border: '1px solid #e2e8f0',
+                borderRadius: '14px',
+                padding: '20px',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                gap: '16px',
+                flexWrap: 'wrap',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+              }}>
+                {/* Order info */}
+                <div style={{ flex: 1, minWidth: '220px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px', flexWrap: 'wrap' }}>
+                    <span style={{ fontSize: '16px', fontWeight: '800', color: '#0f172a' }}>
+                      Order #{order.orderId}
                     </span>
-                  </p>
+                    <span style={{
+                      fontSize: '11px', fontWeight: '700', padding: '3px 10px',
+                      borderRadius: '999px', border: `1px solid ${st.border}`,
+                      backgroundColor: st.bg, color: st.color,
+                    }}>
+                      {st.label}
+                    </span>
+                    {order.hiddenByFarmer && showHistory && (
+                      <span style={{ fontSize: '11px', color: '#94a3b8', fontStyle: 'italic' }}>archived</span>
+                    )}
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '5px 16px', fontSize: '13px', color: '#475569' }}>
+                    <span>🌾 <strong>{produceName}</strong></span>
+                    <span>⚖️ {totalQty} Kg</span>
+                    <span>💰 ৳ {order.totalAmount}</span>
+                    <span>📅 {new Date(order.orderDate).toLocaleDateString()}</span>
+                  </div>
                 </div>
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                {/* Action buttons */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', minWidth: '130px' }}>
                   {order.status === 'pending' && (
                     <>
-                      <button 
+                      <button
+                        className="kc-btn-primary"
                         onClick={() => handleUpdateStatus(order._id, 'accepted')}
-                        style={{ padding: '8px 15px', backgroundColor: '#28a745', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
+                        disabled={isUpdating}
+                        style={{ padding: '9px 14px', fontSize: '13px' }}
                       >
-                        Accept
+                        {isUpdating ? '⏳' : '✅ Accept'}
                       </button>
-                      <button 
+                      <button
+                        className="kc-btn-danger"
                         onClick={() => handleUpdateStatus(order._id, 'rejected')}
-                        style={{ padding: '8px 15px', backgroundColor: '#dc3545', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
+                        disabled={isUpdating}
+                        style={{ padding: '9px 14px', fontSize: '13px' }}
                       >
-                        Reject
+                        {isUpdating ? '⏳' : '❌ Reject'}
                       </button>
                     </>
                   )}
                   {order.status !== 'pending' && !showHistory && (
-                    <button 
+                    <button
+                      className="kc-btn-secondary"
                       onClick={() => handleRemoveOrder(order._id)}
-                      style={{ padding: '8px 15px', backgroundColor: '#6c757d', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
+                      style={{ padding: '9px 14px', fontSize: '13px' }}
                     >
-                      Remove Order
+                      🗑️ Archive
                     </button>
                   )}
                 </div>

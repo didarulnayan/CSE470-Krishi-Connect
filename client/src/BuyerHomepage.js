@@ -2,17 +2,15 @@ import React, { useEffect, useState } from 'react';
 import CropCard from './CropCard';
 
 // ==========================================
-// Requirement 2 - Nayan
-// BuyerHomepage Component
+// Requirement 2 - Nayan (UX Improved)
 // ==========================================
-// Feature 1: Displays a homepage grid of all available crops from the database.
-// Feature 2: Each crop is shown via the CropCard component (image, name, price).
-// Feature 3: Clicking a card navigates to the DetailedView.
 
-const BuyerHomepage = ({ user, onSelectCrop, onGoToOrder }) => {
+const BuyerHomepage = ({ user, onSelectCrop }) => {
   const [crops, setCrops] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [search, setSearch] = useState('');
+  const [filterCategory, setFilterCategory] = useState('All');
 
   useEffect(() => {
     const fetchCrops = async () => {
@@ -21,80 +19,108 @@ const BuyerHomepage = ({ user, onSelectCrop, onGoToOrder }) => {
         setError('');
         const response = await fetch('http://localhost:5000/api/crops');
         const result = await response.json();
-
-        if (!response.ok) {
-          setError(result.error || 'Failed to load crops.');
-          setCrops([]);
-          return;
-        }
-
+        if (!response.ok) { setError(result.error || 'Failed to load crops.'); return; }
         setCrops(result.data || []);
-      } catch (err) {
-        setError('Could not connect to the server. Make sure the server is running.');
-        setCrops([]);
+      } catch {
+        setError('Could not connect to the server.');
       } finally {
         setLoading(false);
       }
     };
-
     fetchCrops();
   }, []);
 
-  const pageStyle = {
-    padding: '28px 24px',
-    fontFamily: 'Arial, sans-serif',
-    backgroundColor: '#f8fbf5',
-    minHeight: '80vh',
-  };
+  const categories = ['All', 'Vegetable', 'Fruit', 'Grain', 'Spice'];
 
-  const headingStyle = {
-    margin: '0 0 6px 0',
-    fontSize: '26px',
-    fontWeight: '700',
-    color: '#1b3a1f',
-  };
-
-  const subheadingStyle = {
-    margin: '0 0 28px 0',
-    color: '#4b5d47',
-    fontSize: '14px',
-  };
-
-  const gridStyle = {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
-    gap: '20px',
-  };
-
-  const emptySyle = {
-    textAlign: 'center',
-    color: '#888',
-    marginTop: '60px',
-    fontSize: '15px',
-  };
+  const filtered = crops.filter(c => {
+    const matchCat = filterCategory === 'All' || c.category === filterCategory;
+    const matchSearch = c.name.toLowerCase().includes(search.toLowerCase()) ||
+                        (c.farmerName && c.farmerName.toLowerCase().includes(search.toLowerCase()));
+    return matchCat && matchSearch;
+  });
 
   return (
-    <div style={pageStyle}>
-      <h2 style={headingStyle}>🌾 Available Crops</h2>
-      <p style={subheadingStyle}>
-        Welcome, <strong>{user.name}</strong>! Browse all available crops below and click a card to view details.
-      </p>
+    <div style={{ padding: '28px 24px', maxWidth: '1100px', margin: '0 auto' }}>
 
-      {loading && <p style={{ textAlign: 'center', color: '#555' }}>Loading crops...</p>}
-      {error && <p style={{ textAlign: 'center', color: '#c62828' }}>{error}</p>}
+      {/* ── Page Header ── */}
+      <div style={{ marginBottom: '24px' }}>
+        <h2 style={{ margin: '0 0 4px', fontSize: '22px', fontWeight: '800', color: '#0f172a' }}>
+          🌾 Available Crops
+        </h2>
+        <p style={{ margin: 0, fontSize: '14px', color: '#64748b' }}>
+          Welcome, <strong>{user.name}</strong>! Browse fresh crops directly from local farmers.
+        </p>
+      </div>
 
-      {/* Feature 1: Grid of crops */}
-      {!loading && !error && crops.length === 0 && (
-        <p style={emptySyle}>No crops are currently available. Check back later!</p>
-      )}
-
-      {!loading && !error && crops.length > 0 && (
-        <div style={gridStyle}>
-          {/* Feature 2 & 3: CropCard renders each crop and triggers navigation on click */}
-          {crops.map((crop) => (
-            <CropCard key={crop._id} crop={crop} onClick={onSelectCrop} />
+      {/* ── Search + Filter ── */}
+      <div style={{ display: 'flex', gap: '12px', marginBottom: '24px', flexWrap: 'wrap' }}>
+        <input
+          className="kc-input"
+          style={{ maxWidth: '320px' }}
+          type="text"
+          placeholder="🔍 Search by crop or farmer name..."
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+        />
+        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+          {categories.map(cat => (
+            <button
+              key={cat}
+              onClick={() => setFilterCategory(cat)}
+              style={{
+                padding: '8px 16px',
+                borderRadius: '999px',
+                border: '1.5px solid',
+                fontSize: '13px',
+                fontWeight: '600',
+                cursor: 'pointer',
+                fontFamily: 'Inter, sans-serif',
+                transition: 'all 0.15s ease',
+                borderColor: filterCategory === cat ? '#16a34a' : '#e2e8f0',
+                backgroundColor: filterCategory === cat ? '#16a34a' : '#fff',
+                color: filterCategory === cat ? '#fff' : '#475569',
+              }}
+            >
+              {cat}
+            </button>
           ))}
         </div>
+      </div>
+
+      {/* ── Content ── */}
+      {loading && (
+        <div style={{ textAlign: 'center', padding: '60px', color: '#94a3b8' }}>⏳ Loading crops...</div>
+      )}
+      {error && (
+        <div className="kc-toast-error" style={{ maxWidth: '480px' }}>⚠️ {error}</div>
+      )}
+      {!loading && !error && filtered.length === 0 && (
+        <div style={{
+          textAlign: 'center', padding: '60px 20px',
+          background: '#fff', borderRadius: '16px', border: '1px solid #e2e8f0',
+        }}>
+          <div style={{ fontSize: '48px', marginBottom: '12px' }}>🔍</div>
+          <h3 style={{ color: '#0f172a', marginBottom: '6px' }}>No crops found</h3>
+          <p style={{ color: '#64748b', margin: 0 }}>
+            {crops.length === 0 ? 'No crops are currently available.' : 'Try adjusting your search or filter.'}
+          </p>
+        </div>
+      )}
+      {!loading && !error && filtered.length > 0 && (
+        <>
+          <p style={{ fontSize: '13px', color: '#94a3b8', marginBottom: '14px' }}>
+            Showing {filtered.length} of {crops.length} crops
+          </p>
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(230px, 1fr))',
+            gap: '20px',
+          }}>
+            {filtered.map(crop => (
+              <CropCard key={crop._id} crop={crop} onClick={onSelectCrop} />
+            ))}
+          </div>
+        </>
       )}
     </div>
   );

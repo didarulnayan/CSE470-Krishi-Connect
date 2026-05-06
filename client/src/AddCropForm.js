@@ -1,10 +1,8 @@
 import React, { useState, useEffect } from 'react';
 
 // ==========================================
-// Requirement 1 - Khalid
+// Requirement 1 - Khalid (UX Improved)
 // ==========================================
-// This is a React functional component. We use 'useState' to store what the user types in the form,
-// and 'useEffect' to run code automatically when the component loads or when data changes.
 
 const AddCropForm = ({ user, onGoBack }) => {
   const [name, setName] = useState('');
@@ -13,13 +11,15 @@ const AddCropForm = ({ user, onGoBack }) => {
   const [description, setDescription] = useState('');
   const [imageUrl, setImageUrl] = useState('');
   const [farmerName, setFarmerName] = useState(user?.name || '');
-  const [farmerContact, setFarmerContact] = useState(user?.contact || ''); // New Contact State
+  const [farmerContact, setFarmerContact] = useState(user?.contact || '');
   const [harvestDate, setHarvestDate] = useState('');
   const [expiryDate, setExpiryDate] = useState('');
   const [totalStock, setTotalStock] = useState('');
   const [minOrder, setMinOrder] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
+  const [successMsg, setSuccessMsg] = useState('');
 
-  // Update farmerName and farmerContact if user prop changes (e.g. after login)
   useEffect(() => {
     if (user?.name) setFarmerName(user.name);
     if (user?.contact) setFarmerContact(user.contact);
@@ -27,157 +27,190 @@ const AddCropForm = ({ user, onGoBack }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setErrorMsg('');
+    setSuccessMsg('');
+    setLoading(true);
+
     const cropData = { name, category, price, description, imageUrl, farmerName, farmerContact, harvestDate, expiryDate, totalStock, minOrder };
 
     try {
       const response = await fetch('http://localhost:5000/api/crops/add', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(cropData)
+        body: JSON.stringify(cropData),
       });
 
       const data = await response.json();
       if (response.ok) {
-        alert("Crop Added Successfully!");
-        // Reset all fields upon success (except farmerName)
-        setName(''); setCategory('Vegetable'); setPrice(''); setDescription(''); setImageUrl(''); setHarvestDate(''); setExpiryDate(''); setTotalStock(''); setMinOrder('');
-        if (onGoBack) onGoBack(); // Go back to dashboard after success
+        setSuccessMsg('🎉 Crop listed successfully!');
+        setName(''); setCategory('Vegetable'); setPrice(''); setDescription('');
+        setImageUrl(''); setHarvestDate(''); setExpiryDate(''); setTotalStock(''); setMinOrder('');
+        setTimeout(() => { if (onGoBack) onGoBack(); }, 1200);
       } else {
-        alert(`Error: ${data.error}`);
+        setErrorMsg(data.error || 'Failed to add crop. Please check your inputs.');
       }
     } catch (error) {
-      console.error(error);
-      alert("Network Error: Could not connect to the backend server.");
+      setErrorMsg('Cannot connect to the server.');
+    } finally {
+      setLoading(false);
     }
   };
 
+  const inputRow = (label, children) => (
+    <div>
+      <label className="kc-label">{label}</label>
+      {children}
+    </div>
+  );
+
+  const categoryColor = {
+    Vegetable: '#16a34a', Fruit: '#d97706', Grain: '#ca8a04', Spice: '#db2777',
+  };
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '20px', fontFamily: 'Arial' }}>
-      
-      {onGoBack && (
-        <div style={{ width: '750px', display: 'flex', justifyContent: 'flex-start', marginBottom: '10px' }}>
-          <button onClick={onGoBack} style={{ padding: '8px 12px', cursor: 'pointer', border: '1px solid #ddd', borderRadius: '4px', backgroundColor: '#f9f9f9' }}>
-            ← Back to Dashboard
-          </button>
+    <div style={{ padding: '28px 24px', maxWidth: '1000px', margin: '0 auto' }}>
+      {/* Back button */}
+      <button className="kc-btn-secondary" onClick={onGoBack} style={{ marginBottom: '20px' }}>
+        ← Back to Dashboard
+      </button>
+
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: '28px', alignItems: 'start' }}>
+
+        {/* ── FORM PANEL ── */}
+        <div style={{ background: '#fff', borderRadius: '16px', border: '1px solid #e2e8f0', padding: '28px', boxShadow: '0 2px 12px rgba(0,0,0,0.05)' }}>
+          <h2 style={{ margin: '0 0 22px', fontSize: '20px', fontWeight: '800', color: '#0f172a' }}>
+            📦 Add a New Crop Listing
+          </h2>
+
+          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+
+            {inputRow('Crop Name',
+              <input className="kc-input" type="text" value={name} onChange={e => setName(e.target.value)} placeholder="e.g. Tomato" required />
+            )}
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+              {inputRow('Category',
+                <select className="kc-input" value={category} onChange={e => setCategory(e.target.value)} style={{ cursor: 'pointer' }}>
+                  <option value="Vegetable">🥦 Vegetable</option>
+                  <option value="Fruit">🍎 Fruit</option>
+                  <option value="Grain">🌾 Grain</option>
+                  <option value="Spice">🌶️ Spice</option>
+                </select>
+              )}
+              {inputRow('Price (৳/Kg)',
+                <input className="kc-input" type="number" value={price} onChange={e => setPrice(e.target.value)} placeholder="e.g. 45" required />
+              )}
+            </div>
+
+            {inputRow('Image URL',
+              <input className="kc-input" type="text" value={imageUrl} onChange={e => setImageUrl(e.target.value)} placeholder="https://..." required />
+            )}
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+              {inputRow('Harvest Date',
+                <input className="kc-input" type="date" value={harvestDate} onChange={e => setHarvestDate(e.target.value)} required />
+              )}
+              {inputRow('Expiry Date',
+                <input className="kc-input" type="date" value={expiryDate} onChange={e => setExpiryDate(e.target.value)} required />
+              )}
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+              {inputRow('Total Stock (Kg)',
+                <input className="kc-input" type="number" value={totalStock} onChange={e => setTotalStock(e.target.value)} placeholder="e.g. 500" required />
+              )}
+              {inputRow('Min Order (Kg)',
+                <input className="kc-input" type="number" value={minOrder} onChange={e => setMinOrder(e.target.value)} placeholder="e.g. 10" required />
+              )}
+            </div>
+
+            <div>
+              <label className="kc-label">Description <span style={{ color: '#94a3b8', fontWeight: 400 }}>(max 100 chars)</span></label>
+              <textarea
+                className="kc-input"
+                value={description}
+                onChange={e => setDescription(e.target.value)}
+                maxLength="100"
+                required
+                placeholder="Brief description of your crop..."
+                style={{ height: '80px', resize: 'none' }}
+              />
+              <div style={{ textAlign: 'right', fontSize: '12px', color: description.length >= 90 ? '#ef4444' : '#94a3b8', marginTop: '3px' }}>
+                {description.length}/100
+              </div>
+            </div>
+
+            {inputRow('Farmer Name',
+              <input className="kc-input" type="text" value={farmerName} onChange={e => setFarmerName(e.target.value)} required />
+            )}
+
+            {/* Feedback */}
+            {errorMsg && <div className="kc-toast-error">⚠️ {errorMsg}</div>}
+            {successMsg && <div className="kc-toast-success">{successMsg}</div>}
+
+            <button
+              type="submit"
+              className="kc-btn-primary"
+              disabled={loading}
+              style={{ padding: '13px', fontSize: '15px', width: '100%', marginTop: '4px', opacity: loading ? 0.7 : 1 }}
+            >
+              {loading ? '⏳ Publishing...' : '🚀 Publish Listing'}
+            </button>
+          </form>
         </div>
-      )}
 
-      <div style={{ display: 'flex', justifyContent: 'center', gap: '50px' }}>
-        
-        {/* FORM SECTION */}
-        <div style={{ width: '400px', border: '1px solid #ddd', padding: '20px', borderRadius: '8px', backgroundColor: '#fff' }}>
-          <h2>Add a New Crop</h2>
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          
-          <label>Crop Name:</label>
-          <input type="text" value={name} onChange={(e) => setName(e.target.value)} required />
-
-          <div style={{ display: 'flex', gap: '10px' }}>
-            <div style={{ flex: 1 }}>
-              <label>Category:</label><br/>
-              <select style={{ width: '100%', padding: '3px' }} value={category} onChange={(e) => setCategory(e.target.value)}>
-                <option value="Vegetable">Vegetable</option>
-                <option value="Fruit">Fruit</option>
-                <option value="Grain">Grain</option>
-                <option value="Spice">Spice</option>
-              </select>
-            </div>
-            <div style={{ flex: 1 }}>
-              <label>Price (৳/Kg):</label><br/>
-              <input type="number" style={{ width: '100%' }} value={price} onChange={(e) => setPrice(e.target.value)} required />
-            </div>
+        {/* ── LIVE PREVIEW PANEL ── */}
+        <div>
+          <div style={{ fontSize: '12px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.8px', color: '#64748b', marginBottom: '10px' }}>
+            👀 Live Preview
           </div>
-
-          <label>Image URL:</label>
-          <input type="text" value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} required />
-
-          <div style={{ display: 'flex', gap: '10px' }}>
-            <div style={{ flex: 1 }}>
-              <label>Harvest Date:</label>
-              <input type="date" style={{ width: '100%' }} value={harvestDate} onChange={(e) => setHarvestDate(e.target.value)} required />
-            </div>
-            <div style={{ flex: 1 }}>
-              <label>Expiry Date:</label>
-              <input type="date" style={{ width: '100%' }} value={expiryDate} onChange={(e) => setExpiryDate(e.target.value)} required />
-            </div>
-          </div>
-
-          <div style={{ display: 'flex', gap: '10px' }}>
-            <div style={{ flex: 1 }}>
-              <label>Total Stock (Kg):</label>
-              <input type="number" style={{ width: '100%' }} value={totalStock} onChange={(e) => setTotalStock(e.target.value)} required />
-            </div>
-            <div style={{ flex: 1 }}>
-              <label>Min Order (Kg):</label>
-              <input type="number" style={{ width: '100%' }} value={minOrder} onChange={(e) => setMinOrder(e.target.value)} required />
-            </div>
-          </div>
-
-          <label>Description (Max 100 chars):</label>
-          <textarea 
-            value={description} 
-            onChange={(e) => setDescription(e.target.value)} 
-            maxLength="100"
-            required 
-            style={{ height: '80px', resize: 'none', padding: '5px' }} 
-          />
-          <small style={{ color: description.length === 100 ? 'red' : 'gray' }}>{description.length}/100 characters</small>
-
-          <label>Farmer Name:</label>
-          <input type="text" value={farmerName} onChange={(e) => setFarmerName(e.target.value)} required />
-
-          <button type="submit" style={{ padding: '10px', backgroundColor: '#28a745', color: '#fff', border: 'none', borderRadius: '5px', cursor: 'pointer', marginTop: '10px' }}>
-            Publish Listing
-          </button>
-        </form>
-      </div>
-
-      {/* PREVIEW SECTION */}
-      <div style={{ width: '300px' }}>
-        <h3>Buyer Preview 👀</h3>
-        <div style={{ border: '1px solid #007bff', padding: '15px', borderRadius: '10px', backgroundColor: '#f9f9f9' }}>
-          
-          {imageUrl ? (
-             <img src={imageUrl} alt="Crop" style={{ width: '100%', height: '150px', objectFit: 'cover', borderRadius: '5px' }} />
-          ) : (
-             <div style={{ width: '100%', height: '150px', backgroundColor: '#e9ecef', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '5px' }}>No Image</div>
-          )}
-          
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '10px' }}>
-            <h3 style={{ margin: 0 }}>{name || "Crop Name"}</h3>
-            <span style={{ backgroundColor: '#ffc107', padding: '2px 6px', borderRadius: '10px', fontSize: '12px' }}>{category}</span>
-          </div>
-          
-          <h3 style={{ color: '#28a745', margin: '10px 0' }}>৳ {price || "0"} / Kg</h3>
-          
-          <div style={{ backgroundColor: '#fff', padding: '10px', border: '1px solid #eee', borderRadius: '5px', fontSize: '13px', marginBottom: '10px' }}>
-            <p style={{ margin: '3px 0' }}>🌱 <b>Harvested:</b> {harvestDate || "TBD"}</p>
-            <p style={{ margin: '3px 0' }}>⏳ <b>Expires:</b> {expiryDate || "TBD"}</p>
-            <p style={{ margin: '3px 0' }}>📦 <b>Stock:</b> {totalStock || "0"} Kg</p>
-            <p style={{ margin: '3px 0' }}>⚖️ <b>Min Order:</b> {minOrder || "0"} Kg</p>
-          </div>
-
-          <p style={{ 
-            color: '#444', 
-            fontSize: '14px', 
-            wordWrap: 'break-word', 
-            whiteSpace: 'pre-wrap', 
-            backgroundColor: '#fff',
-            padding: '8px',
-            borderRadius: '5px',
-            border: '1px solid #eee'
+          <div style={{
+            background: '#fff',
+            borderRadius: '14px',
+            border: '1px solid #e2e8f0',
+            overflow: 'hidden',
+            boxShadow: '0 4px 16px rgba(0,0,0,0.07)',
           }}>
-            {description || "No description provided."}
-          </p>
+            {imageUrl ? (
+              <img src={imageUrl} alt="Preview" style={{ width: '100%', height: '170px', objectFit: 'cover' }} />
+            ) : (
+              <div style={{ width: '100%', height: '170px', background: '#f0fdf4', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '40px' }}>🌿</div>
+            )}
 
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '10px' }}>
-            <p style={{ fontSize: '12px', fontWeight: 'bold', margin: 0 }}>👨‍🌾 By: {farmerName || "Farmer"}</p>
-            <p style={{ fontSize: '12px', color: '#007bff', margin: 0 }}>📞 {farmerContact || "Contact Info"}</p>
+            <div style={{ padding: '16px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                <h3 style={{ margin: 0, fontSize: '16px', fontWeight: '700', color: '#0f172a' }}>{name || 'Crop Name'}</h3>
+                <span style={{
+                  fontSize: '10px', fontWeight: '700', textTransform: 'uppercase',
+                  padding: '3px 8px', borderRadius: '999px',
+                  backgroundColor: '#dcfce7', color: categoryColor[category] || '#16a34a',
+                }}>{category}</span>
+              </div>
+
+              <div style={{ fontSize: '18px', fontWeight: '800', color: '#16a34a', marginBottom: '12px' }}>
+                ৳ {price || '0'} <span style={{ fontSize: '12px', fontWeight: '500', color: '#64748b' }}>/ Kg</span>
+              </div>
+
+              <div style={{ background: '#f8faf8', borderRadius: '8px', padding: '10px', fontSize: '12px', color: '#475569', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '5px', marginBottom: '10px' }}>
+                <span>🌱 {harvestDate || 'Harvest TBD'}</span>
+                <span>⏳ {expiryDate || 'Expiry TBD'}</span>
+                <span>📦 {totalStock || '0'} Kg</span>
+                <span>⚖️ Min {minOrder || '0'} Kg</span>
+              </div>
+
+              <p style={{ margin: '0 0 10px', fontSize: '13px', color: '#64748b', lineHeight: '1.5' }}>
+                {description || 'No description provided.'}
+              </p>
+
+              <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid #f1f5f9', paddingTop: '10px', fontSize: '12px' }}>
+                <span style={{ fontWeight: '600' }}>👨‍🌾 {farmerName || 'Farmer'}</span>
+                <span style={{ color: '#16a34a', fontWeight: '600' }}>📞 {farmerContact || 'Contact'}</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
     </div>
-  </div>
   );
 };
 
