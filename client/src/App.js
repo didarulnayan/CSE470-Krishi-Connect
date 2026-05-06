@@ -5,6 +5,8 @@ import FarmerDashboard from './FarmerDashboard'; // New Dashboard
 import FarmerOrders from './FarmerOrders'; // Member 2 Orders Dashboard
 import OrderPage from './OrderPage'; // Member 3 integration
 import AdminDashboard from './AdminDashboard'; // Admin Dashboard integration
+import BuyerHomepage from './BuyerHomepage'; // Requirement 2 - Buyer Browse
+import DetailedView from './DetailedView';   // Requirement 2 - Crop Detail
 
 // ==========================================
 // Main Application Component (Router)
@@ -18,6 +20,10 @@ function App() {
 
   // State to manage what the farmer sees
   const [farmerView, setFarmerView] = useState('dashboard');
+
+  // State to manage what the buyer sees (Requirement 2)
+  const [buyerView, setBuyerView] = useState('home'); // 'home' | 'detail' | 'order'
+  const [selectedCrop, setSelectedCrop] = useState(null);
 
   return (
     <div>
@@ -35,6 +41,8 @@ function App() {
               onClick={() => {
                 setUser(null);
                 setFarmerView('dashboard'); // Reset view on logout
+                setBuyerView('home');       // Reset buyer view on logout
+                setSelectedCrop(null);
               }}
               style={{ padding: '6px 12px', backgroundColor: '#dc3545', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
             >
@@ -61,11 +69,30 @@ function App() {
         // Route 3: Logged in as Admin? Show AdminDashboard
         <AdminDashboard user={user} />
       ) : (
-        // Route 4: Logged in as Buyer? Show Member 3's Order Page!
-        // Member 3 integration 
-        <div style={{ padding: '32px 20px 48px' }}>
-          <OrderPage />
-        </div>
+        // Route 4: Logged in as Buyer? Show Requirement 2 Buyer flow
+        buyerView === 'home' ? (
+          <BuyerHomepage
+            user={user}
+            onSelectCrop={(crop) => { setSelectedCrop(crop); setBuyerView('detail'); }}
+          />
+        ) : buyerView === 'detail' ? (
+          <DetailedView
+            crop={selectedCrop}
+            onGoBack={() => setBuyerView('home')}
+            onOrderNow={() => setBuyerView('order')}
+          />
+        ) : (
+          // Buyer clicked Order Now → Member 3's OrderPage
+          <div style={{ padding: '32px 20px 48px' }}>
+            <button
+              onClick={() => setBuyerView('home')}
+              style={{ marginBottom: '16px', padding: '8px 16px', backgroundColor: '#f0f5ec', border: '1px solid #c8dcc0', borderRadius: '8px', color: '#2f7d32', fontSize: '14px', fontWeight: '600', cursor: 'pointer' }}
+            >
+              ← Back to Crops
+            </button>
+            <OrderPage />
+          </div>
+        )
       )}
 
     </div>
