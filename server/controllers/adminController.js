@@ -23,4 +23,36 @@ const getAllCrops = async (req, res) => {
   }
 };
 
-module.exports = { getAllUsers, getAllCrops };
+// --- DELETE CROP LISTING ---
+const deleteCropListing = async (req, res) => {
+  try {
+    const deletedCrop = await CropListing.findByIdAndDelete(req.params.id);
+
+    if (!deletedCrop) {
+      return res.status(404).json({ error: "Crop listing not found" });
+    }
+
+    res.status(200).json({ message: "Crop listing deleted successfully" });
+  } catch (error) {
+    console.error("ðŸ”¥ Error deleting crop listing:", error.message);
+    res.status(500).json({ error: "Server error while deleting crop listing" });
+  }
+};
+
+// --- REMOVE USER (Ban/Delete) ---
+const removeUser = async (req, res) => {
+  try {
+    const deletedUser = await User.findByIdAndDelete(req.params.id);
+
+    if (!deletedUser) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    res.status(200).json({ message: `User "${deletedUser.name}" has been removed successfully.` });
+  } catch (error) {
+    console.error('🔥 Error removing user:', error.message);
+    res.status(500).json({ error: 'Server error while removing user' });
+  }
+};
+
+module.exports = { getAllUsers, getAllCrops, deleteCropListing, removeUser };
