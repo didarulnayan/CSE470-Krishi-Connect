@@ -39,7 +39,7 @@ const FarmerDashboard = ({ user, onNavigate }) => {
             onClick={() => onNavigate('orders')}
             style={{ padding: '10px 15px', backgroundColor: '#17a2b8', color: '#fff', border: 'none', borderRadius: '5px', cursor: 'pointer', fontWeight: 'bold' }}
           >
-            📋 Check Orders
+             Check Orders
           </button>
           <button 
             onClick={() => onNavigate('add')}

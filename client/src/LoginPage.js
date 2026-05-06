@@ -96,7 +96,6 @@ const LoginPage = ({ onLoginSuccess }) => {
               >
                 <option value="buyer">Buyer (Customer)</option>
                 <option value="farmer">Farmer (Vendor)</option>
-                <option value="admin">System Admin</option>
               </select>
             </div>
           )}
