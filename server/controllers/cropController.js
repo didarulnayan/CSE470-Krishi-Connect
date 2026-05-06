@@ -37,6 +37,18 @@ const addCrop = async (req, res) => {
   }
 };
 
+// --- GET ALL CROPS (Requirement 2 - Buyer Browse) ---
+// Simple GET to return all available crops for the buyer homepage grid.
+const getAllCrops = async (req, res) => {
+  try {
+    const crops = await CropListing.find().sort({ _id: -1 });
+    res.status(200).json({ data: crops });
+  } catch (error) {
+    console.log('🔥 MONGOOSE ERROR:', error.message);
+    res.status(500).json({ error: 'Failed to fetch crops' });
+  }
+};
+
 // --- GET FARMER'S CROPS (Requirement 1 Follow-up) ---
 const getFarmerCrops = async (req, res) => {
   try {
@@ -53,4 +65,4 @@ const getFarmerCrops = async (req, res) => {
 // End of Requirement 1 - Khalid
 // ==========================================
 
-module.exports = { addCrop, getFarmerCrops };
+module.exports = { addCrop, getFarmerCrops, getAllCrops };
