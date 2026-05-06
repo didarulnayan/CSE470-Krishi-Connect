@@ -6,6 +6,7 @@ const AdminDashboard = ({ user }) => {
   const [crops, setCrops] = useState([]);
   const [loading, setLoading] = useState(false);
   const [deletingCropId, setDeletingCropId] = useState(null);
+  const [removingUserId, setRemovingUserId] = useState(null);
 
   useEffect(() => {
     fetchData();
@@ -52,6 +53,35 @@ const AdminDashboard = ({ user }) => {
       alert(error.message);
     } finally {
       setDeletingCropId(null);
+    }
+  };
+
+  const handleRemoveUser = async (userId, userName, userRole) => {
+    if (userRole === 'admin') {
+      alert('Admin accounts cannot be removed.');
+      return;
+    }
+    const confirmed = window.confirm(`Remove user "${userName}"? This will permanently delete their account from the database.`);
+    if (!confirmed) return;
+
+    setRemovingUserId(userId);
+    try {
+      const res = await fetch(`http://localhost:5000/api/admin/users/${userId}`, {
+        method: 'DELETE'
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to remove user');
+      }
+
+      // Remove from local state immediately (no need to refetch)
+      setUsers(prevUsers => prevUsers.filter(u => u._id !== userId));
+    } catch (error) {
+      console.error('Error removing user:', error);
+      alert(error.message);
+    } finally {
+      setRemovingUserId(null);
     }
   };
 
@@ -174,6 +204,16 @@ const AdminDashboard = ({ user }) => {
       display: 'flex',
       justifyContent: 'flex-end'
     },
+    removeUserButton: (disabled) => ({
+      backgroundColor: disabled ? '#f5c2c7' : '#dc3545',
+      color: 'white',
+      border: 'none',
+      borderRadius: '8px',
+      padding: '10px 14px',
+      fontSize: '0.95rem',
+      fontWeight: '700',
+      cursor: disabled ? 'not-allowed' : 'pointer'
+    }),
     deleteButton: (disabled) => ({
       backgroundColor: disabled ? '#f5c2c7' : '#dc3545',
       color: 'white',
@@ -240,6 +280,17 @@ const AdminDashboard = ({ user }) => {
                   <span style={styles.detailValue}>{u.contact}</span>
                 </div>
               )}
+              {/* Remove User Button - disabled for admin accounts */}
+              <div style={styles.actionRow}>
+                <button
+                  style={styles.removeUserButton(removingUserId === u._id || u.role === 'admin')}
+                  onClick={() => handleRemoveUser(u._id, u.name, u.role)}
+                  disabled={removingUserId === u._id || u.role === 'admin'}
+                  title={u.role === 'admin' ? 'Admin accounts cannot be removed' : `Remove ${u.name}`}
+                >
+                  {removingUserId === u._id ? 'Removing...' : '🚫 Remove User'}
+                </button>
+              </div>
             </div>
           ))}
 

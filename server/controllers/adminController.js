@@ -39,4 +39,20 @@ const deleteCropListing = async (req, res) => {
   }
 };
 
-module.exports = { getAllUsers, getAllCrops, deleteCropListing };
+// --- REMOVE USER (Ban/Delete) ---
+const removeUser = async (req, res) => {
+  try {
+    const deletedUser = await User.findByIdAndDelete(req.params.id);
+
+    if (!deletedUser) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    res.status(200).json({ message: `User "${deletedUser.name}" has been removed successfully.` });
+  } catch (error) {
+    console.error('🔥 Error removing user:', error.message);
+    res.status(500).json({ error: 'Server error while removing user' });
+  }
+};
+
+module.exports = { getAllUsers, getAllCrops, deleteCropListing, removeUser };
