@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 
-function OrderForm({ produceOptions = [] }) {
-  const [selectedProduceId, setSelectedProduceId] = useState('');
+function OrderForm({ produceOptions = [], defaultProduceId }) {
+  const [selectedProduceId, setSelectedProduceId] = useState(defaultProduceId || '');
   const [quantity, setQuantity] = useState('');
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
@@ -13,8 +13,13 @@ function OrderForm({ produceOptions = [] }) {
   useEffect(() => {
     if (!selectedProduceId && produceOptions.length > 0) {
       setSelectedProduceId(produceOptions[0]._id);
+    } else if (defaultProduceId && produceOptions.length > 0 && selectedProduceId !== defaultProduceId) {
+      // In case state wasn't initialized or defaultProduceId changes
+      if (produceOptions.some(p => p._id === defaultProduceId)) {
+        setSelectedProduceId(defaultProduceId);
+      }
     }
-  }, [produceOptions, selectedProduceId]);
+  }, [produceOptions, selectedProduceId, defaultProduceId]);
 
   const selectedProduce = useMemo(
     () => produceOptions.find((item) => item._id === selectedProduceId),
