@@ -134,6 +134,17 @@ const updateOrderStatus = async (req, res) => {
       return res.status(404).json({ error: 'Order not found.' });
     }
 
+    if (status === 'accepted' && order.status !== 'accepted') {
+      const orderItems = await OrderItem.find({ _id: { $in: order.orderItems } });
+      for (const item of orderItems) {
+        const produce = await Produce.findById(item.produce);
+        if (produce) {
+          produce.totalStock = Math.max(0, produce.totalStock - item.quantity);
+          await produce.save();
+        }
+      }
+    }
+
     order.status = status;
     await order.save();
 
