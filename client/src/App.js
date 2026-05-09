@@ -25,11 +25,28 @@ function App() {
   const [buyerView, setBuyerView] = useState('home'); // 'home' | 'detail' | 'order'
   const [selectedCrop, setSelectedCrop] = useState(null);
 
+  const handleLogoClick = () => {
+    if (user) {
+      if (user.role === 'farmer') setFarmerView('dashboard');
+      if (user.role === 'buyer') setBuyerView('home');
+      setSelectedCrop(null);
+    }
+  };
+
   return (
     <div>
       {/* Dynamic Header based on who is logged in */}
       <div style={{ backgroundColor: '#f4f4f4', padding: '10px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '2px solid #ddd' }}>
-        <h1 style={{ margin: 0, fontFamily: 'Arial', color: '#28a745' }}>Krishi-Connect</h1>
+        <div 
+          onClick={handleLogoClick}
+          style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}
+          title="Return to Home"
+        >
+          <img src="/logo.png" alt="Krishi-Connect Logo" style={{ height: '32px', width: '32px', objectFit: 'contain' }} />
+          <h1 style={{ margin: 0, fontFamily: 'Arial', color: '#28a745', fontSize: '24px' }}>
+            Krishi-Connect
+          </h1>
+        </div>
 
         {/* If user is logged in, show their name and a Logout button */}
         {user && (
@@ -90,7 +107,7 @@ function App() {
             >
               ← Back to Crops
             </button>
-            <OrderPage />
+            <OrderPage defaultProduceId={selectedCrop ? selectedCrop._id : null} />
           </div>
         )
       )}

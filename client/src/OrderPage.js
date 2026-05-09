@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import OrderForm from './OrderForm';
 
-function OrderPage() {
+function OrderPage({ defaultProduceId }) {
   const [produceOptions, setProduceOptions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -41,7 +41,7 @@ function OrderPage() {
       ) : error ? (
         <p style={{ textAlign: 'center', color: '#c62828' }}>{error}</p>
       ) : (
-        <OrderForm produceOptions={produceOptions} />
+        <OrderForm produceOptions={produceOptions} defaultProduceId={defaultProduceId} />
       )}
     </section>
   );
